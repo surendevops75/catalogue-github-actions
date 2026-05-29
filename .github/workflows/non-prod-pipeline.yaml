@@ -1,0 +1,120 @@
+# Workflow name shown in GitHub Actions UI
+name: NON-PROD Pipeline
+
+# --------------------------------------------------------
+# MANUAL WORKFLOW TRIGGER
+# --------------------------------------------------------
+
+on:
+
+  # Allows workflow execution from GitHub UI
+  workflow_dispatch:
+
+    # Runtime user inputs
+    inputs:
+
+      # --------------------------------------------------------
+      # VERSION INPUT
+      # --------------------------------------------------------
+
+      # Application version / commit SHA
+      version:
+
+        # Description shown in workflow UI
+        description: "Please enter SHA code"
+
+        # Input is mandatory
+        required: true
+
+        # Input type
+        type: string
+
+      # --------------------------------------------------------
+      # ENVIRONMENT INPUT
+      # --------------------------------------------------------
+
+      # Environment selection dropdown
+      environment:
+
+        # Description shown in UI
+        description: "Please select environment"
+
+        # Dropdown selection
+        type: choice
+
+        # Allowed environment options
+        options:
+          - qa
+          - uat
+          - sit
+
+        # Input is mandatory
+        required: true
+
+        # Default selected value
+        default: uat
+
+# --------------------------------------------------------
+# CONCURRENCY CONTROL
+# --------------------------------------------------------
+
+concurrency:
+
+  # Unique execution group
+  # Prevents parallel deployment conflicts
+  group: roboshop-catalogue-nonprod
+
+  # Existing workflow continues execution
+  cancel-in-progress: false
+
+# --------------------------------------------------------
+# GITHUB TOKEN PERMISSIONS
+# --------------------------------------------------------
+
+permissions:
+
+  # Read repository contents
+  contents: read
+
+  # Update commit/build statuses
+  statuses: write
+
+  # Read security scan results
+  security-events: read
+
+jobs:
+
+  # Job name
+  non-prod-pipeline:
+
+    # --------------------------------------------------------
+    # CONDITIONAL EXECUTION
+    # --------------------------------------------------------
+
+    # Execute only for main branch
+    if: github.ref == 'refs/heads/main'
+
+    # --------------------------------------------------------
+    # REUSABLE WORKFLOW
+    # --------------------------------------------------------
+
+    # Call centralized reusable workflow
+    uses: daws-86s/workflows/.github/workflows/non-prod-pipeline.yaml@main
+
+    # --------------------------------------------------------
+    # INPUTS PASSED TO CHILD WORKFLOW
+    # --------------------------------------------------------
+
+    with:
+
+      # Pass version input
+      version: ${{ inputs.version }}
+
+      # Pass selected environment
+      environment: ${{ inputs.environment }}
+
+    # --------------------------------------------------------
+    # INHERIT REPOSITORY SECRETS
+    # --------------------------------------------------------
+
+    secrets: inherit
