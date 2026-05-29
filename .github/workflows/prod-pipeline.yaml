@@ -1,0 +1,90 @@
+# Workflow File
+
+# Workflow name shown in GitHub Actions UI
+name: NON-PROD Pipeline
+
+# --------------------------------------------------------
+# MANUAL WORKFLOW TRIGGER
+# --------------------------------------------------------
+
+on:
+
+  # Allows manual workflow execution
+  workflow_dispatch:
+
+    # User inputs shown during workflow run
+    inputs:
+
+      # Application version / SHA input
+      version:
+
+        # Description shown in UI
+        description: "Please enter SHA code"
+
+        # Input is mandatory
+        required: true
+
+        # Input type
+        type: string
+
+# --------------------------------------------------------
+# CONCURRENCY CONFIGURATION
+# --------------------------------------------------------
+
+concurrency:
+
+  # Unique concurrency group
+  # Prevents multiple executions of same pipeline
+  group: roboshop-catalogue-prod
+
+  # Do not cancel already running workflow
+  cancel-in-progress: false
+
+# --------------------------------------------------------
+# GITHUB TOKEN PERMISSIONS
+# --------------------------------------------------------
+
+permissions:
+
+  # Read repository contents
+  contents: read
+
+  # Update commit statuses
+  statuses: write
+
+  # Read security scanning results
+  security-events: read
+
+jobs:
+
+  # Job name
+  prod-pipeline:
+
+    # --------------------------------------------------------
+    # CONDITIONAL EXECUTION
+    # --------------------------------------------------------
+
+    # Execute only for main branch
+    if: github.ref == 'refs/heads/main'
+
+    # --------------------------------------------------------
+    # REUSABLE WORKFLOW
+    # --------------------------------------------------------
+
+    # Reuse workflow from another repository
+    uses: daws-86s/workflows/.github/workflows/prod-pipeline.yaml@main
+
+    # --------------------------------------------------------
+    # INPUTS PASSED TO REUSABLE WORKFLOW
+    # --------------------------------------------------------
+
+    with:
+
+      # Pass user-provided version input
+      version: ${{ inputs.version }}
+
+    # --------------------------------------------------------
+    # INHERIT ALL REPOSITORY SECRETS
+    # --------------------------------------------------------
+
+    secrets: inherit
