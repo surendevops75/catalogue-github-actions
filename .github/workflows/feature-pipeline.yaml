@@ -1,0 +1,76 @@
+# Workflow name shown in GitHub Actions UI
+name: feature-pipeline
+
+# Trigger workflow on every push
+on: [push]
+
+# --------------------------------------------------------
+# GITHUB TOKEN PERMISSIONS
+# --------------------------------------------------------
+
+permissions:
+
+  # Read repository contents
+  contents: read
+
+  # Update commit/build statuses
+  statuses: write
+
+  # Read security scanning results
+  security-events: read
+
+jobs:
+
+  # --------------------------------------------------------
+  # FEATURE BRANCH PIPELINE
+  # --------------------------------------------------------
+
+  feature-pipeline:
+
+    # Execute only for non-main branches
+    if: github.ref != 'refs/heads/main'
+
+    # Call reusable feature pipeline workflow
+    uses: daws-86s/workflows/.github/workflows/feature-nodejs-pipeline.yaml@main
+
+    # Inputs passed into reusable workflow
+    with:
+
+      # Project name
+      project: roboshop
+
+      # Application/service name
+      component: catalogue
+
+      # Deployment environment
+      environment: dev
+
+    # Pass all repository secrets
+    secrets: inherit
+
+  # --------------------------------------------------------
+  # MAIN BRANCH DEV PIPELINE
+  # --------------------------------------------------------
+
+  dev-pipeline:
+
+    # Execute only for main branch
+    if: github.ref == 'refs/heads/main'
+
+    # Call reusable development pipeline
+    uses: daws-86s/workflows/.github/workflows/dev-nodejs-pipeline.yaml@main
+
+    # Inputs passed into reusable workflow
+    with:
+
+      # Project name
+      project: roboshop
+
+      # Application/service name
+      component: catalogue
+
+      # Deployment environment
+      environment: dev
+
+    # Pass repository secrets
+    secrets: inherit
